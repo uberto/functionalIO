@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.9.20"
     application
 }
 
@@ -23,5 +23,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.example.AppKt")
+    mainClass.set("com.ubertob.Main")
 }

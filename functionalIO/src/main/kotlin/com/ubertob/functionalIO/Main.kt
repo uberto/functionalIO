@@ -9,10 +9,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun main() {
-    Database.connect("jdbc:sqlite:users.db", "org.sqlite.JDBC")
-    transaction {
-        SchemaUtils.create(Users)
-    }
+    prepareDb()
 
     val app = routes(
         "/" bind Method.GET to ::listUsers,
@@ -23,4 +20,8 @@ fun main() {
     app.asServer(Netty(8080)).start()
     println("Server started on http://localhost:8080")
 }
+
+
+
+
 
