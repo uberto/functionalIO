@@ -5,10 +5,11 @@ import org.http4k.core.Status.Companion.OK
 import org.http4k.core.body.form
 import org.http4k.routing.path
 
+//Functional Hexagonal,Ports and Adapters
 class UserService(
-    val loadUser: UserLoader,
-    val saveUser: UserSaver,
-    val loadAllUsers: AllUserLoader
+    val loadUser: (UserId) -> User?,
+    val saveUser:  (String, String) -> UserId ,
+    val loadAllUsers: () -> List<User>
 ) {
 
     fun listUsers(request: Request): Response {
