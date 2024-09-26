@@ -10,24 +10,30 @@ object Users : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
-
-fun saveUser(db: Database, uName: String, uEmail: String): UserId =
-    transaction(db) { //Database should be passed explicitly !!!
-        Users.insert {
-            it[name] = uName
-            it[email] = uEmail
-        } get Users.id
+class UserLoader(val db: Database) : (UserId) -> User? {
+    override fun invoke(userId: UserId): User? = transaction(db) {
+        Users.select { Users.id eq userId }.map {
+            User(it[Users.id], it[Users.name], it[Users.email])
+        }.singleOrNull()
     }
+}
 
-fun loadUser(db: Database, id: UserId): User? =
-    transaction(db) {
-        Users.select { Users.id eq id }.map { User(it[Users.id], it[Users.name], it[Users.email]) }.singleOrNull()
-    }
+class UserSaver(val db: Database) : (String, String) -> UserId {
+    override fun invoke(uName: String, uEmail: String): UserId =
+        transaction(db) { //Database should be passed explicitly !!!
+            Users.insert {
+                it[name] = uName
+                it[email] = uEmail
+            } get Users.id
+        }
+}
 
-fun loadAllUsers(db: Database): List<User> =
-    transaction(db) {
+class AllUserLoader(val db: Database) : () -> List<User> {
+    override fun invoke(): List<User> = transaction(db) {
         Users.selectAll().map { User(it[Users.id], it[Users.name], it[Users.email]) }
     }
+}
+
 
 fun prepareDb(): Database {
     val db = Database.connect("jdbc:sqlite:users.db", "org.sqlite.JDBC")

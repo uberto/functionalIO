@@ -4,12 +4,15 @@ import org.http4k.core.*
 import org.http4k.core.Status.Companion.OK
 import org.http4k.core.body.form
 import org.http4k.routing.path
-import org.jetbrains.exposed.sql.Database
 
-class UserService(val database: Database) {
+class UserService(
+    val loadUser: UserLoader,
+    val saveUser: UserSaver,
+    val loadAllUsers: AllUserLoader
+) {
 
     fun listUsers(request: Request): Response {
-        val users = loadAllUsers(database)
+        val users = loadAllUsers()
         return Response(OK).body(renderUserList(users))
     }
 
@@ -18,14 +21,14 @@ class UserService(val database: Database) {
         val name = formData.getFirst("name") ?: return Response(Status.BAD_REQUEST)
         val email = formData.getFirst("email") ?: return Response(Status.BAD_REQUEST)
 
-        saveUser(database, name, email)
+        saveUser(name, email)
 
         return Response(Status.SEE_OTHER).header("Location", "/")
     }
 
     fun getUserDetails(request: Request): Response {
         val id = request.path("id")?.toIntOrNull() ?: return Response(Status.BAD_REQUEST)
-        val user = loadUser(database, id)
+        val user = loadUser(id)
 
         return if (user != null) {
             Response(Status.OK).body(renderUserDetails(user))

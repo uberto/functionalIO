@@ -9,7 +9,7 @@ import org.http4k.server.asServer
 fun main() {
    val db = prepareDb()
 
-    val userService = UserService(db)
+    val userService = UserService(UserLoader(db), UserSaver(db), AllUserLoader(db))
 
     val app = routes(
         "/" bind Method.GET to userService::listUsers,
