@@ -11,15 +11,15 @@ object Users : Table() {
 }
 
 
-fun saveUser(uName: String, uEmail: String) =
-    transaction() { //Database should be passed explicitely
+fun saveUser(uName: String, uEmail: String): UserId =
+    transaction() { //Database should be passed explicitly !!!
         Users.insert {
             it[name] = uName
             it[email] = uEmail
-        }
+        } get Users.id
     }
 
-fun loadUser( id: Int): User? =
+fun loadUser( id: UserId): User? =
     transaction() {
         Users.select { Users.id eq id }.map { User(it[Users.id], it[Users.name], it[Users.email]) }.singleOrNull()
     }

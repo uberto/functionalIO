@@ -1,4 +1,7 @@
 package com.ubertob.functionalIO
 
 
-data class User(val id: Int, val name: String, val email: String)
+
+typealias UserId = Int
+
+data class User(val id: UserId, val name: String, val email: String)
