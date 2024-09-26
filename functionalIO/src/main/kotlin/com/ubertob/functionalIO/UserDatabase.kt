@@ -10,6 +10,7 @@ object Users : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
+
 class UserLoader(val db: Database) : (UserId) -> User? {
     override fun invoke(userId: UserId): User? = transaction(db) {
         Users.select { Users.id eq userId }.map {
