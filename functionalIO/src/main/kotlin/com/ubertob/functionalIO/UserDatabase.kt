@@ -10,27 +10,31 @@ object Users : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
-fun saveUser(uName: String, uEmail: String) = transaction {
-    Users.insert {
-        it[name] = uName
-        it[email] = uEmail
+
+fun saveUser(uName: String, uEmail: String) =
+    transaction() { //Database should be passed explicitely
+        Users.insert {
+            it[name] = uName
+            it[email] = uEmail
+        }
     }
-}
 
-
-fun loadUser(id: Int): User? =
-    Users.select { Users.id eq id }.map { User(it[Users.id], it[Users.name], it[Users.email]) }.singleOrNull()
-
+fun loadUser( id: Int): User? =
+    transaction() {
+        Users.select { Users.id eq id }.map { User(it[Users.id], it[Users.name], it[Users.email]) }.singleOrNull()
+    }
 
 fun loadAllUsers(): List<User> =
-    Users.selectAll().map { User(it[Users.id], it[Users.name], it[Users.email]) }
-
-
-fun prepareDb() {
-    Database.connect("jdbc:sqlite:users.db", "org.sqlite.JDBC")
-    transaction {
-        SchemaUtils.create(Users)
-        saveUser("John Smith", "jsmith@acme.com")
-        saveUser("Betty Page", "bpage@acme.com")
+    transaction() {
+        Users.selectAll().map { User(it[Users.id], it[Users.name], it[Users.email]) }
     }
+
+fun prepareDb(): Database {
+    val db = Database.connect("jdbc:sqlite:users.db", "org.sqlite.JDBC")
+    transaction(db) {
+        SchemaUtils.create(Users)
+        Users.deleteAll()
+    }
+
+    return db
 }
