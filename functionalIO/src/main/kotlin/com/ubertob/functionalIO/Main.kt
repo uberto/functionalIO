@@ -7,9 +7,9 @@ import org.http4k.server.Netty
 import org.http4k.server.asServer
 
 fun main() {
-    prepareDb()
+   val db = prepareDb()
 
-    val userService = UserService()
+    val userService = UserService(db)
 
     val app = routes(
         "/" bind Method.GET to userService::listUsers,
