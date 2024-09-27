@@ -9,12 +9,12 @@ import org.http4k.server.asServer
 fun main() {
    val db = prepareDb()
 
-    val userService = UserService(UserLoader(db), UserSaver(db), AllUserLoader(db))
+    val userService = UserService()
 
     val app = routes(
-        "/" bind Method.GET to userService::listUsers,
-        "/users" bind Method.POST to userService::addUser,
-        "/users/{id}" bind Method.GET to userService::getUserDetails
+        "/" bind Method.GET to { request -> userService.listUsers(request).run(db) },
+        "/users" bind Method.POST to { request -> userService.addUser(request).run(db) },
+        "/users/{id}" bind Method.GET to { request -> userService.getUserDetails(request).run(db)  }
     )
 
     app.asServer(Netty(8080)).start()

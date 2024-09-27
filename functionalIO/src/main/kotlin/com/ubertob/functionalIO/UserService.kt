@@ -6,35 +6,45 @@ import org.http4k.core.body.form
 import org.http4k.routing.path
 
 //Functional Hexagonal,Ports and Adapters
-class UserService(
-    val loadUser: (UserId) -> User?,
-    val saveUser:  (String, String) -> UserId ,
-    val loadAllUsers: () -> List<User>
-) {
+class UserService() {
 
-    fun listUsers(request: Request): Response {
-        val users = loadAllUsers()
-        return Response(OK).body(renderUserList(users))
-    }
+    fun listUsers(request: Request): DbReader<Response> =
+        DbReader { AllUserLoader(it)() }
+            .transform(::renderUserList)
+            .transform { Response(OK).body(it) }
 
-    fun addUser(request: Request): Response {
+
+    fun addUser(request: Request): DbReader<Response> {
+
         val formData = request.form().toParametersMap()
-        val name = formData.getFirst("name") ?: return Response(Status.BAD_REQUEST)
-        val email = formData.getFirst("email") ?: return Response(Status.BAD_REQUEST)
+        val name = formData.getFirst("name")
+        val email = formData.getFirst("email")
 
-        saveUser(name, email)
-
-        return Response(Status.SEE_OTHER).header("Location", "/")
+        return if (name.isNullOrBlank() || email.isNullOrBlank()) {
+            DbReader { Response(Status.BAD_REQUEST) }
+        } else {
+            DbReader {
+                UserSaver(it)(name, email)
+            }.transform {
+                Response(Status.SEE_OTHER).header("Location", "/")
+            }
+        }
     }
 
-    fun getUserDetails(request: Request): Response {
-        val id = request.path("id")?.toIntOrNull() ?: return Response(Status.BAD_REQUEST)
-        val user = loadUser(id)
-
-        return if (user != null) {
-            Response(Status.OK).body(renderUserDetails(user))
+    fun getUserDetails(request: Request): DbReader<Response> {
+        val id = request.path("id")?.toIntOrNull()
+        return if (id == null) {
+            DbReader { Response(Status.BAD_REQUEST) }
         } else {
-            Response(Status.NOT_FOUND).body("User not found")
+            DbReader {
+                UserLoader(it)(id)
+            }.transform { user ->
+                if (user != null) {
+                    Response(Status.OK).body(renderUserDetails(user))
+                } else {
+                    Response(Status.NOT_FOUND).body("User not found")
+                }
+            }
         }
     }
 }
