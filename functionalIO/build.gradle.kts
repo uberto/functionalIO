@@ -6,6 +6,14 @@ plugins {
 group = "com.example"
 version = "1.0-SNAPSHOT"
 
+
+//tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask::class.java) {
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
+    }
+}
+
 repositories {
     mavenCentral()
 }

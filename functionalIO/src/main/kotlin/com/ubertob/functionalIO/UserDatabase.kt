@@ -11,28 +11,23 @@ object Users : Table() {
 }
 
 
-class UserLoader(val db: Database) : (UserId) -> User? {
-    override fun invoke(userId: UserId): User? = transaction(db) {
-        Users.select { Users.id eq userId }.map {
-            User(it[Users.id], it[Users.name], it[Users.email])
-        }.singleOrNull()
-    }
+fun Database.loadUser(userId: UserId): User? = transaction(this) {
+    Users.select { Users.id eq userId }.map {
+        User(it[Users.id], it[Users.name], it[Users.email])
+    }.singleOrNull()
 }
 
-class UserSaver(val db: Database) : (String, String) -> UserId {
-    override fun invoke(uName: String, uEmail: String): UserId =
-        transaction(db) { //Database should be passed explicitly !!!
-            Users.insert {
-                it[name] = uName
-                it[email] = uEmail
-            } get Users.id
-        }
-}
-
-class AllUserLoader(val db: Database) : () -> List<User> {
-    override fun invoke(): List<User> = transaction(db) {
-        Users.selectAll().map { User(it[Users.id], it[Users.name], it[Users.email]) }
+fun Database.saveUser(uName: String, uEmail: String): UserId =
+    transaction(this) { //Database should be passed explicitly !!!
+        Users.insert {
+            it[name] = uName
+            it[email] = uEmail
+        } get Users.id
     }
+
+
+fun Database.loadAllUsers(): List<User> = transaction(this) {
+    Users.selectAll().map { User(it[Users.id], it[Users.name], it[Users.email]) }
 }
 
 
